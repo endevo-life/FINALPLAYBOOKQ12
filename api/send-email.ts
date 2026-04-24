@@ -6,8 +6,8 @@ import {
   toGHLPayload,
   QUESTIONS,
   type Answer,
-} from "../src/lib/engine";
-import { renderReport } from "../src/lib/emailTemplate";
+} from "./_lib/engine";
+import { renderReport } from "./_lib/emailTemplate";
 import { buildPlannerPdf } from "./_lib/pdf";
 import { getInlineImages, type InlineImage } from "./_lib/inlineAssets";
 

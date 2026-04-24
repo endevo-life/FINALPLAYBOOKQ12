@@ -7,7 +7,7 @@ import {
 } from "pdf-lib";
 import fs from "fs";
 import path from "path";
-import type { AssessmentResult, DayAssignment, Domain, JesseWrapper } from "../../src/lib/engine";
+import type { AssessmentResult, DayAssignment, Domain, JesseWrapper } from "./engine";
 
 // ── Brand palette ────────────────────────────────────────────────────────────
 const NAVY = rgbTriple(15, 23, 42);
