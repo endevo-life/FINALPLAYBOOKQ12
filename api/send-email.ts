@@ -2,13 +2,14 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { SESClient, SendRawEmailCommand } from "@aws-sdk/client-ses";
 import {
   runAssessment,
-  getStaticWrapper,
+  getJesseWrapper,
   toGHLPayload,
   QUESTIONS,
   type Answer,
 } from "../src/lib/engine";
+import { renderReport } from "../src/lib/emailTemplate";
 import { buildPlannerPdf } from "./_lib/pdf";
-import { renderEmailHtml, renderEmailText } from "./_lib/emailHtml";
+import { getInlineImages, type InlineImage } from "./_lib/inlineAssets";
 
 interface SendEmailBody {
   name?: unknown;
@@ -16,7 +17,9 @@ interface SendEmailBody {
   answers?: unknown;
 }
 
-function validate(body: SendEmailBody): { name: string; email: string; answers: Answer[] } | string {
+function validate(
+  body: SendEmailBody
+): { name: string; email: string; answers: Answer[] } | string {
   if (typeof body.name !== "string" || !body.name.trim()) return "Missing name.";
   if (typeof body.email !== "string" || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email)) {
     return "Invalid email.";
@@ -45,56 +48,97 @@ function validate(body: SendEmailBody): { name: string; email: string; answers: 
   return { name: body.name.trim(), email: body.email.trim(), answers };
 }
 
+function boundary(tag: string): string {
+  return `${tag}_${Date.now().toString(16)}_${Math.random().toString(16).slice(2)}`;
+}
+
+function chunkBase64(buf: Buffer | Uint8Array): string {
+  const b64 = Buffer.from(buf).toString("base64");
+  return b64.match(/.{1,76}/g)?.join("\r\n") ?? "";
+}
+
+/**
+ * MIME tree:
+ *   multipart/mixed (boundary mx)
+ *     multipart/related (boundary rel)
+ *       multipart/alternative (boundary alt)
+ *         text/plain
+ *         text/html
+ *       image/png (inline, Content-ID: <...>)
+ *       ...
+ *     application/pdf (attachment)
+ */
 function buildRawMimeEmail(opts: {
   from: string;
   to: string;
   subject: string;
   html: string;
   text: string;
+  inlineImages: InlineImage[];
   pdf: Uint8Array;
   pdfFilename: string;
 }): Buffer {
-  const boundaryMixed = `mixed_${Date.now().toString(16)}_${Math.random().toString(16).slice(2)}`;
-  const boundaryAlt = `alt_${Date.now().toString(16)}_${Math.random().toString(16).slice(2)}`;
+  const mx = boundary("mixed");
+  const rel = boundary("related");
+  const alt = boundary("alt");
 
-  const pdfB64 = Buffer.from(opts.pdf).toString("base64").match(/.{1,76}/g)?.join("\r\n") ?? "";
-
-  const lines = [
+  const parts: string[] = [
     `From: ${opts.from}`,
     `To: ${opts.to}`,
     `Subject: ${opts.subject}`,
     "MIME-Version: 1.0",
-    `Content-Type: multipart/mixed; boundary="${boundaryMixed}"`,
+    `Content-Type: multipart/mixed; boundary="${mx}"`,
     "",
-    `--${boundaryMixed}`,
-    `Content-Type: multipart/alternative; boundary="${boundaryAlt}"`,
+    `--${mx}`,
+    `Content-Type: multipart/related; boundary="${rel}"`,
     "",
-    `--${boundaryAlt}`,
+    `--${rel}`,
+    `Content-Type: multipart/alternative; boundary="${alt}"`,
+    "",
+    `--${alt}`,
     'Content-Type: text/plain; charset="UTF-8"',
     "Content-Transfer-Encoding: 7bit",
     "",
     opts.text,
     "",
-    `--${boundaryAlt}`,
+    `--${alt}`,
     'Content-Type: text/html; charset="UTF-8"',
     "Content-Transfer-Encoding: 7bit",
     "",
     opts.html,
     "",
-    `--${boundaryAlt}--`,
+    `--${alt}--`,
     "",
-    `--${boundaryMixed}`,
+  ];
+
+  for (const img of opts.inlineImages) {
+    parts.push(
+      `--${rel}`,
+      `Content-Type: ${img.contentType}; name="${img.filename}"`,
+      "Content-Transfer-Encoding: base64",
+      `Content-ID: <${img.cid}>`,
+      `Content-Disposition: inline; filename="${img.filename}"`,
+      "",
+      chunkBase64(img.buffer),
+      ""
+    );
+  }
+
+  parts.push(
+    `--${rel}--`,
+    "",
+    `--${mx}`,
     "Content-Type: application/pdf",
     "Content-Transfer-Encoding: base64",
     `Content-Disposition: attachment; filename="${opts.pdfFilename}"`,
     "",
-    pdfB64,
+    chunkBase64(opts.pdf),
     "",
-    `--${boundaryMixed}--`,
-    "",
-  ];
+    `--${mx}--`,
+    ""
+  );
 
-  return Buffer.from(lines.join("\r\n"), "utf-8");
+  return Buffer.from(parts.join("\r\n"), "utf-8");
 }
 
 async function fireGHLWebhook(payload: unknown): Promise<void> {
@@ -128,11 +172,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const { name, email, answers } = validated;
   const result = runAssessment(name, answers);
-  const wrapper = getStaticWrapper(result);
+  const wrapper = getJesseWrapper(result);
 
+  const rendered = renderReport({ name, email, result });
   const pdf = await buildPlannerPdf(result, wrapper);
-  const html = renderEmailHtml(result, wrapper);
-  const text = renderEmailText(result, wrapper);
 
   const from = process.env.SES_FROM;
   if (!from) {
@@ -140,15 +183,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
+  let inlineImages: InlineImage[];
+  try {
+    inlineImages = getInlineImages();
+  } catch (err) {
+    console.error("Inline image load failed:", err);
+    res.status(500).json({ error: "Email assets missing on server." });
+    return;
+  }
+
   const ses = new SESClient({ region: process.env.AWS_REGION ?? "us-east-1" });
+  const firstNameSlug =
+    name.split(/\s+/)[0].replace(/[^a-z0-9]/gi, "").toLowerCase() || "plan";
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const mmddyyyy = `${pad(now.getMonth() + 1)}-${pad(now.getDate())}-${now.getFullYear()}`;
   const raw = buildRawMimeEmail({
     from,
     to: email,
-    subject: `${name}, your ENDevo 7-day plan is here`,
-    html,
-    text,
+    subject: rendered.subject,
+    html: rendered.html,
+    text: rendered.text,
+    inlineImages,
     pdf,
-    pdfFilename: `endevo-7day-plan-${name.replace(/[^a-z0-9]/gi, "_").toLowerCase() || "plan"}.pdf`,
+    pdfFilename: `${firstNameSlug}-7DayLegacyPlanner-${mmddyyyy}.pdf`,
   });
 
   try {

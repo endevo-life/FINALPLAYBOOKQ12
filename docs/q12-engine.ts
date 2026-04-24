@@ -380,72 +380,31 @@ export function toGHLPayload(
   answers: Answer[]
 ) {
   const byRank = (r: number) => result.domainResults.find((d) => d.rank === r)!.domain;
-  const byDomainScore = (d: Domain) => result.domainResults.find((r) => r.domain === d)!.score;
-  const byDomainPercent = (d: Domain) => result.domainResults.find((r) => r.domain === d)!.percent;
-
+  const byDomain = (d: Domain) => result.domainResults.find((r) => r.domain === d)!.score;
   return {
-    // ── Contact
     first_name: result.name,
     email,
-
-    // ── Top-line scoring
-    total_score: result.totalScore,           // 0-24 raw
-    percent_ready: result.percentReady,       // 0-100 average across 4 domains
-    tier: result.band,                        // "AT RISK" | "SOMEWHAT PREPARED" | "PREPARED"
-    band: result.band,                        // alias — same value, for backward compat
-
-    // ── Per-domain raw score (0-6)
-    digital_score: byDomainScore("Digital"),
-    legal_score: byDomainScore("Legal"),
-    financial_score: byDomainScore("Financial"),
-    physical_score: byDomainScore("Physical"),
-
-    // ── Per-domain percentage (0-100)
-    digital_percent: byDomainPercent("Digital"),
-    legal_percent: byDomainPercent("Legal"),
-    financial_percent: byDomainPercent("Financial"),
-    physical_percent: byDomainPercent("Physical"),
-
-    // ── Legacy compact keys (kept for existing GHL workflows)
-    domain_d_score: byDomainScore("Digital"),
-    domain_l_score: byDomainScore("Legal"),
-    domain_f_score: byDomainScore("Financial"),
-    domain_p_score: byDomainScore("Physical"),
-
-    // ── Domain ranking (rank 1 = weakest)
+    total_score: result.totalScore,
+    percent_ready: result.percentReady,
+    band: result.band,
+    domain_d_score: byDomain("Digital"),
+    domain_l_score: byDomain("Legal"),
+    domain_f_score: byDomain("Financial"),
+    domain_p_score: byDomain("Physical"),
     weakest_domain: byRank(1),
-    second_weakest_domain: byRank(2),
-    third_weakest_domain: byRank(3),
-    strongest_domain: byRank(4),
     domain_ranks: [byRank(1), byRank(2), byRank(3), byRank(4)],
-
-    // ── Personalised 7-day plan (IDs + friendly titles)
     day_1_action_id: result.plan[0].action.id,
-    day_1_action_title: result.plan[0].action.title,
     day_2_action_id: result.plan[1].action.id,
-    day_2_action_title: result.plan[1].action.title,
     day_3_action_id: result.plan[2].action.id,
-    day_3_action_title: result.plan[2].action.title,
     day_4_action_id: result.plan[3].action.id,
-    day_4_action_title: result.plan[3].action.title,
     day_5_action_id: result.plan[4].action.id,
-    day_5_action_title: result.plan[4].action.title,
     day_6_action_id: result.plan[5].action.id,
-    day_6_action_title: result.plan[5].action.title,
     day_7_action_id: result.plan[6].action.id,
-    day_7_action_title: result.plan[6].action.title,
-
-    // ── GHL tag hints (apply these on webhook receipt)
-    tag_band: `Q12_${result.band.replace(/\s+/g, "_")}`,
-    tag_weakest: `Q12_WEAKEST_${byRank(1).toUpperCase()}`,
-
-    // ── Raw answers + metadata
     answers: answers.reduce(
       (acc, a) => ({ ...acc, [a.questionId]: a.value }),
       {} as Record<string, string>
     ),
     completed_at: new Date().toISOString(),
-    source: "Q12_GAP_ANALYSIS",
   };
 }
 

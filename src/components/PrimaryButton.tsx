@@ -1,4 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+
+declare module "./PrimaryButton.css";
+
 import "./PrimaryButton.css";
 
 interface PrimaryButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
