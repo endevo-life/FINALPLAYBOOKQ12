@@ -1,0 +1,54 @@
+.error-fallback {
+  min-height: 100vh;
+  background: var(--bg-gradient-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.error-fallback__card {
+  background: var(--surface-1);
+  border: 1px solid var(--surface-border-1);
+  border-radius: var(--radius-surface);
+  padding: 2.5rem 2rem;
+  max-width: 440px;
+  text-align: center;
+}
+
+.error-fallback__card h1 {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.error-fallback__card p {
+  font-family: var(--font-body);
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+}
+
+.error-fallback__detail {
+  display: block;
+  background: rgba(0, 0, 0, 0.3);
+  color: var(--accent-amber);
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-input);
+  font-family: monospace;
+  font-size: 0.8rem;
+  margin-bottom: 1.5rem;
+  word-break: break-word;
+}
+
+.error-fallback__btn {
+  background: var(--grad-cta);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  font-weight: 700;
+  padding: 0.75rem 2rem;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  border: none;
+}

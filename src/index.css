@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+  /* Backgrounds */
+  --bg-solid: #0f172a;
+  --bg-gradient-main: linear-gradient(145deg, #0f172a 0%, #1e3a8a 50%, #0f172a 100%);
+  --bg-gradient-quiz: linear-gradient(160deg, #0f172a 0%, #172554 60%, #0f172a 100%);
+
+  /* Accents */
+  --accent-orange: #f97316;
+  --accent-orange-deep: #ea580c;
+  --accent-amber: #fbbf24;
+  --accent-orange-soft: #fb923c;
+
+  /* Text */
+  --text-primary: #ffffff;
+  --text-muted: rgba(255, 255, 255, 0.7);
+  --text-subtle: rgba(255, 255, 255, 0.4);
+  --text-label: rgba(255, 255, 255, 0.55);
+
+  /* Surfaces */
+  --surface-1: rgba(255, 255, 255, 0.05);
+  --surface-2: rgba(255, 255, 255, 0.08);
+  --surface-3: rgba(255, 255, 255, 0.12);
+  --surface-border-1: rgba(255, 255, 255, 0.1);
+  --surface-border-2: rgba(255, 255, 255, 0.15);
+
+  /* State colors */
+  --success-green: #22c55e;
+  --danger-red: #ef4444;
+  --danger-red-soft: #f87171;
+
+  /* Preparedness band colors */
+  --band-at-risk: #B8341B;
+  --band-somewhat: #D94A28;
+  --band-prepared: #C9A84C;
+
+  /* Gradients */
+  --grad-headline: linear-gradient(90deg, #f97316 0%, #fbbf24 100%);
+  --grad-cta: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+  --grad-progress: linear-gradient(90deg, #f97316 0%, #fbbf24 100%);
+  --grad-selected-answer: linear-gradient(135deg, rgba(249, 115, 22, 0.25) 0%, rgba(234, 88, 12, 0.2) 100%);
+
+  /* Shadows */
+  --shadow-cta: 0 8px 32px rgba(249, 115, 22, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-cta-hover: 0 14px 40px rgba(249, 115, 22, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3);
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.35);
+
+  /* Radii */
+  --radius-card: 14px;
+  --radius-pill: 100px;
+  --radius-input: 12px;
+  --radius-surface: 24px;
+
+  /* Typography */
+  --font-display: 'Sora', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Layout */
+  --max-landing: 1100px;
+  --max-content: 700px;
+  --max-quiz-card: 660px;
+  --max-capture-card: 500px;
+
+  /* Motion */
+  --ease-standard: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-exit: cubic-bezier(0.55, 0, 1, 0.45);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg-solid);
+  color: var(--text-primary);
+  overflow-x: hidden;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+input, textarea, select {
+  font: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(249, 115, 22, 0.4);
+  border-radius: var(--radius-pill);
+}
+
+::selection {
+  background: rgba(249, 115, 22, 0.3);
+  color: var(--text-primary);
+}

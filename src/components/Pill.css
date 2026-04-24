@@ -1,0 +1,35 @@
+.pill {
+  display: inline-block;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+
+.pill--stat {
+  background: var(--surface-2);
+  border: 1px solid var(--surface-border-2);
+  padding: 0.4rem 1.1rem;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.pill--domain {
+  background: rgba(249, 115, 22, 0.15);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  padding: 0.3rem 0.9rem;
+  font-size: 0.72rem;
+  color: var(--accent-orange-soft);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pill--band {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 0.5rem 1.1rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
