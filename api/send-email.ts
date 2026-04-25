@@ -6,10 +6,10 @@ import {
   toGHLPayload,
   QUESTIONS,
   type Answer,
-} from "./_lib/engine";
-import { renderReport } from "./_lib/emailTemplate";
-import { buildPlannerPdf } from "./_lib/pdf";
-import { getInlineImages, type InlineImage } from "./_lib/inlineAssets";
+} from "./_lib/engine.js";
+import { renderReport } from "./_lib/emailTemplate.js";
+import { buildPlannerPdf } from "./_lib/pdf.js";
+import { getInlineImages, type InlineImage } from "./_lib/inlineAssets.js";
 
 interface SendEmailBody {
   name?: unknown;

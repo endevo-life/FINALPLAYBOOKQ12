@@ -1,4 +1,4 @@
-import type { Band } from "./engine";
+import type { Band } from "./engine.js";
 
 export interface BandDef {
   key: Band;

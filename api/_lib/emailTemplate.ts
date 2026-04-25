@@ -1,6 +1,6 @@
-import type { AssessmentResult } from "./engine";
-import { BAND_DEFS } from "./bands";
-import { BRAND } from "./constants";
+import type { AssessmentResult } from "./engine.js";
+import { BAND_DEFS } from "./bands.js";
+import { BRAND } from "./constants.js";
 
 export interface ReportPayload {
   name: string;

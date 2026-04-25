@@ -7,7 +7,7 @@ import {
   DLP_ICON_CID,
   NIKI_PORTRAIT_CID,
   NIKI_DETAILS_CID,
-} from "./emailTemplate";
+} from "./emailTemplate.js";
 
 export interface InlineImage {
   cid: string;
