@@ -45,7 +45,7 @@ export default function Landing() {
             </div>
 
             <h1 className="landing-headline">
-              Find your gaps in 12 questions.
+              Find your gaps in 12&nbsp;questions.
               <br />
               <span className="headline-accent">Get a 7-day plan.</span>
             </h1>
