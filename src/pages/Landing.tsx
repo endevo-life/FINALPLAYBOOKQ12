@@ -10,7 +10,7 @@ import "./Landing.css";
 const STAT_PILLS = [
   "12 Questions",
   "3 Minutes",
-  "Personalised 7-Day Plan",
+  "7-Day Plan",
 ] as const;
 
 export default function Landing() {
@@ -45,13 +45,14 @@ export default function Landing() {
             </div>
 
             <h1 className="landing-headline">
-              Find your gaps in 12 questions.{" "}
+              Find your gaps in 12 questions.
+              <br />
               <span className="headline-accent">Get a 7-day plan.</span>
             </h1>
 
             <p className="landing-sub">
               Twelve quick questions across Digital, Legal, Financial &amp;
-              Physical readiness. Instant Band score. A personalised 7-day
+              Physical Readiness. Instant Score. Receive a personalized 7-day
               planner delivered to your inbox.
             </p>
 
@@ -65,9 +66,9 @@ export default function Landing() {
             </div>
 
             <div className="jesse-intro">
-              <strong>Jesse:</strong> I'll walk you through 12 questions across
-              Digital, Legal, Financial &amp; Physical readiness — then email
-              your personalised 7-day planner.
+              <strong>Jesse:</strong> I'll walk you through 12 quick questions
+              across Digital, Legal, Financial &amp; Physical Readiness, then
+              email your personalized 7-day planner.
             </div>
           </div>
 
