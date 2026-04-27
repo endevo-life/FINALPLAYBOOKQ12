@@ -3,7 +3,7 @@ import {
   pushGraphicsState, popGraphicsState,
   moveTo, lineTo, closePath, appendBezierCurve, clip, endPath,
   fill as fillOp, setFillingColor,
-  type PDFFont, type PDFImage, type PDFPage,
+  type PDFFont, type PDFForm, type PDFImage, type PDFPage,
 } from "pdf-lib";
 import fs from "fs";
 import path from "path";
@@ -112,10 +112,6 @@ function drawSingleLine(page: PDFPage, text: string, opts: {
 
 function fillRect(page: PDFPage, x: number, y: number, w: number, h: number, c: [number, number, number]) {
   page.drawRectangle({ x, y, width: w, height: h, color: rgb(c[0], c[1], c[2]) });
-}
-
-function strokeRect(page: PDFPage, x: number, y: number, w: number, h: number, c: [number, number, number], thickness = 1) {
-  page.drawRectangle({ x, y, width: w, height: h, borderColor: rgb(c[0], c[1], c[2]), borderWidth: thickness });
 }
 
 function drawCircleFilled(page: PDFPage, cx: number, cy: number, r: number, c: [number, number, number]) {
@@ -441,7 +437,8 @@ function drawDayBlock(
   dayNum: number,
   left: { eyebrow: string; title: string },
   right: { checkboxLabel: string; description: string; jesseNote: string },
-  fonts: Fonts
+  fonts: Fonts,
+  form: PDFForm
 ): number {
   const { regular, bold } = fonts;
   const leftX = 48;
@@ -465,9 +462,18 @@ function drawDayBlock(
     leftTextY -= 24;
   }
 
-  // Right column: checkbox + action title + description
+  // Right column: real interactive AcroForm checkbox + action title + description
   const checkY = blockTop - 2;
-  strokeRect(page, rightX, checkY - 14, 16, 16, LABEL, 1.2);
+  const checkbox = form.createCheckBox(`day_${dayNum}_done`);
+  checkbox.addToPage(page, {
+    x: rightX,
+    y: checkY - 14,
+    width: 16,
+    height: 16,
+    borderColor: rgb(LABEL[0], LABEL[1], LABEL[2]),
+    borderWidth: 1.2,
+    backgroundColor: rgb(1, 1, 1),
+  });
   // Action title (next to checkbox)
   const titleX = rightX + 26;
   let titleY = checkY - 2;
@@ -541,7 +547,8 @@ function drawDaysPage(
   days: DayAssignment[],
   dayNotes: string[],
   logo: PDFImage,
-  fonts: Fonts
+  fonts: Fonts,
+  form: PDFForm
 ) {
   drawDayPageHeader(page, result, bandLabel, logo, fonts);
   let cursor = 700;
@@ -560,7 +567,8 @@ function drawDaysPage(
         description: descriptionForDay(d),
         jesseNote: dayNotes[noteIdx] ?? "",
       },
-      fonts
+      fonts,
+      form
     );
     void i;
   });
@@ -574,7 +582,8 @@ function drawDay7AndNotesPage(
   day7: DayAssignment,
   closingNote: string,
   logo: PDFImage,
-  fonts: Fonts
+  fonts: Fonts,
+  form: PDFForm
 ) {
   drawDayPageHeader(page, result, bandLabel, logo, fonts);
   const cursor = drawDayBlock(
@@ -590,18 +599,31 @@ function drawDay7AndNotesPage(
       description: descriptionForDay(day7),
       jesseNote: closingNote,
     },
-    fonts
+    fonts,
+    form
   );
-  // My notes section
+  // My notes section — real interactive multi-line text field
   const notesTop = cursor - 20;
   drawSingleLine(page, "MY NOTES", {
     x: 48, y: notesTop, font: fonts.bold, size: 10, color: LABEL,
   });
   fillRect(page, 48, notesTop - 6, 516, 0.5, DIVIDER);
-  // Empty box for handwriting
   const boxTop = notesTop - 16;
   const boxH = Math.min(200, boxTop - 80);
-  strokeRect(page, 48, boxTop - boxH, 516, boxH, DIVIDER, 1);
+
+  const notesField = form.createTextField("my_notes");
+  notesField.enableMultiline();
+  notesField.setText("");
+  notesField.addToPage(page, {
+    x: 48,
+    y: boxTop - boxH,
+    width: 516,
+    height: boxH,
+    borderColor: rgb(DIVIDER[0], DIVIDER[1], DIVIDER[2]),
+    borderWidth: 1,
+    backgroundColor: rgb(1, 1, 1),
+  });
+
   drawSingleLine(page, "Use this space to capture your thoughts, priorities, or reminders as you work through your plan.", {
     x: 48, y: boxTop - boxH - 14, font: fonts.regular, size: 9, color: MUTED,
   });
@@ -618,6 +640,7 @@ export async function buildPlannerPdf(
   const regular = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const fonts: Fonts = { regular, bold };
+  const form = doc.getForm();
 
   const logoBuf = loadPng("logo_v2_with_white_text.png");
   const jesseBuf = loadPng("jesse.png");
@@ -648,14 +671,14 @@ export async function buildPlannerPdf(
   ];
 
   const page2 = doc.addPage([612, 792]);
-  drawDaysPage(page2, result, result.band, result.plan.slice(0, 3), dayNotes, logo, fonts);
+  drawDaysPage(page2, result, result.band, result.plan.slice(0, 3), dayNotes, logo, fonts, form);
 
   const page3 = doc.addPage([612, 792]);
-  drawDaysPage(page3, result, result.band, result.plan.slice(3, 6), dayNotes, logo, fonts);
+  drawDaysPage(page3, result, result.band, result.plan.slice(3, 6), dayNotes, logo, fonts, form);
 
   // Day 7 + My Notes
   const page4 = doc.addPage([612, 792]);
-  drawDay7AndNotesPage(page4, result, result.band, result.plan[6], wrapper.day7Closing, logo, fonts);
+  drawDay7AndNotesPage(page4, result, result.band, result.plan[6], wrapper.day7Closing, logo, fonts, form);
 
   return doc.save();
 }
