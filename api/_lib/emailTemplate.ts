@@ -302,7 +302,7 @@ function renderText(payload: ReportPayload): string {
 }
 
 export function renderReport(payload: ReportPayload): RenderedEmail {
-  const subject = `Your Score: ${payload.result.totalScore}/24 - Your 7-day plan is ready`;
+  const subject = `Your Score: ${payload.result.percentReady}/100 - Your 7-day plan is ready`;
   return {
     subject,
     html: renderHtml(payload),

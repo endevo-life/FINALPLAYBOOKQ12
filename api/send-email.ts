@@ -112,12 +112,15 @@ function buildRawMimeEmail(opts: {
   ];
 
   for (const img of opts.inlineImages) {
+    // Strip name= and filename= so clients treat these strictly as inline
+    // embedded resources (referenced by Content-ID) rather than downloadable
+    // attachments shown at the bottom of the message.
     parts.push(
       `--${rel}`,
-      `Content-Type: ${img.contentType}; name="${img.filename}"`,
+      `Content-Type: ${img.contentType}`,
       "Content-Transfer-Encoding: base64",
       `Content-ID: <${img.cid}>`,
-      `Content-Disposition: inline; filename="${img.filename}"`,
+      "Content-Disposition: inline",
       "",
       chunkBase64(img.buffer),
       ""
