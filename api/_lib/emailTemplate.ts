@@ -56,7 +56,6 @@ function firstName(full: string): string {
 function renderHtml(payload: ReportPayload): string {
   const fName = escapeHtml(firstName(payload.name));
   const plan = payload.result.plan;
-  const dScore = (d: string) => payload.result.domainResults.find((x) => x.domain === d)?.score ?? 0;
   const dPct = (d: string) => payload.result.domainResults.find((x) => x.domain === d)?.percent ?? 0;
 
   return `
@@ -129,22 +128,18 @@ function renderHtml(payload: ReportPayload): string {
           <tr><td style="padding:2px 36px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
             <strong style="color:${INK};display:inline-block;min-width:96px;">Digital:</strong>
             <strong style="color:${ORANGE_DEEP};">${dPct("Digital")}%</strong>
-            <span style="color:${MUTED};">&nbsp;&middot;&nbsp; ${dScore("Digital")}/6</span>
           </td></tr>
           <tr><td style="padding:2px 36px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
             <strong style="color:${INK};display:inline-block;min-width:96px;">Legal:</strong>
             <strong style="color:${ORANGE_DEEP};">${dPct("Legal")}%</strong>
-            <span style="color:${MUTED};">&nbsp;&middot;&nbsp; ${dScore("Legal")}/6</span>
           </td></tr>
           <tr><td style="padding:2px 36px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
             <strong style="color:${INK};display:inline-block;min-width:96px;">Financial:</strong>
             <strong style="color:${ORANGE_DEEP};">${dPct("Financial")}%</strong>
-            <span style="color:${MUTED};">&nbsp;&middot;&nbsp; ${dScore("Financial")}/6</span>
           </td></tr>
           <tr><td style="padding:2px 36px 14px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
             <strong style="color:${INK};display:inline-block;min-width:96px;">Physical:</strong>
             <strong style="color:${ORANGE_DEEP};">${dPct("Physical")}%</strong>
-            <span style="color:${MUTED};">&nbsp;&middot;&nbsp; ${dScore("Physical")}/6</span>
           </td></tr>
 
           <!-- The deal -->
@@ -298,8 +293,6 @@ function renderHtml(payload: ReportPayload): string {
 function renderText(payload: ReportPayload): string {
   const fName = firstName(payload.name);
   const plan = payload.result.plan;
-  const dScore = (d: string) =>
-    payload.result.domainResults.find((x) => x.domain === d)?.score ?? 0;
   const dPct = (d: string) =>
     payload.result.domainResults.find((x) => x.domain === d)?.percent ?? 0;
 
@@ -313,10 +306,10 @@ function renderText(payload: ReportPayload): string {
     `Your Legacy Readiness Score: ${payload.result.percentReady}%`,
     ``,
     `Domain breakdown:`,
-    `Digital: ${dPct("Digital")}% (${dScore("Digital")}/6)`,
-    `Legal: ${dPct("Legal")}% (${dScore("Legal")}/6)`,
-    `Financial: ${dPct("Financial")}% (${dScore("Financial")}/6)`,
-    `Physical: ${dPct("Physical")}% (${dScore("Physical")}/6)`,
+    `Digital: ${dPct("Digital")}%`,
+    `Legal: ${dPct("Legal")}%`,
+    `Financial: ${dPct("Financial")}%`,
+    `Physical: ${dPct("Physical")}%`,
     ``,
     `Here is the deal for the next 7 days. One action a day. Each one takes 10 to 15 minutes. Built for your specific gaps, in the right order. By Day 7 you will have done more legacy work than the majority of people. Let's break through this taboo topic together.`,
     ``,
