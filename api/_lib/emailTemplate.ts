@@ -1,5 +1,4 @@
 import type { AssessmentResult } from "./engine.js";
-import { BAND_DEFS } from "./bands.js";
 import { BRAND } from "./constants.js";
 
 export interface ReportPayload {
@@ -33,7 +32,6 @@ const FONT_BODY = "'Inter','Segoe UI',Arial,sans-serif";
 const INK = "#0f172a";
 const SOFT = "#334155";
 const MUTED = "#475569";
-const LABEL = "#64748b";
 const DIVIDER = "#e2e8f0";
 const PAGE_BG = "#f1f5f9";
 const ORANGE = "#f97316";
@@ -56,9 +54,9 @@ function firstName(full: string): string {
 }
 
 function renderHtml(payload: ReportPayload): string {
-  const band = BAND_DEFS[payload.result.band];
   const fName = escapeHtml(firstName(payload.name));
-  const weakest = payload.result.weakestDomain;
+  const plan = payload.result.plan;
+  const dScore = (d: string) => payload.result.domainResults.find((x) => x.domain === d)?.score ?? 0;
 
   return `
 <!doctype html>
@@ -106,49 +104,80 @@ function renderHtml(payload: ReportPayload): string {
             </div>
           </td></tr>
 
-          <!-- Opening paragraph -->
+          <!-- Opening -->
           <tr><td style="padding:14px 36px 4px;font-family:${FONT_BODY};font-size:15px;line-height:1.6;color:${SOFT};">
-            You just did something most people will not do this year. You took a few minutes and looked honestly at your legacy readiness across the four domains that matter: legal, financial, physical, and digital.
+            You just did something most people refuse to do. You looked at your own death honestly. Twelve questions. Four domains. Five minutes.
           </td></tr>
 
-          <!-- Score hero -->
-          <tr><td align="center" style="padding:24px 36px 4px;">
-            <div style="font-family:${FONT_DISPLAY};font-size:64px;font-weight:800;color:${INK};line-height:1;">
-              ${payload.result.percentReady}%
-            </div>
-            <div style="font-family:${FONT_DISPLAY};font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:${LABEL};margin-top:6px;font-weight:700;">
-              Average Readiness Across Your 4 Domains
-            </div>
-            <div style="margin-top:14px;">
-              <span style="display:inline-block;background:${band.color};color:#ffffff;font-family:${FONT_DISPLAY};font-weight:700;font-size:11px;padding:6px 16px;border-radius:100px;letter-spacing:0.1em;text-transform:uppercase;">
-                ${band.label}
-              </span>
-            </div>
+          <tr><td style="padding:14px 36px 4px;font-family:${FONT_BODY};font-size:15px;line-height:1.6;color:${SOFT};">
+            Here is what came back.
           </td></tr>
 
+          <!-- Score line (percentage) -->
+          <tr><td style="padding:14px 36px 4px;font-family:${FONT_BODY};font-size:17px;line-height:1.55;color:${SOFT};">
+            Your <strong style="color:${INK};">Legacy Readiness Score</strong>:
+            <strong style="color:${ORANGE_DEEP};font-size:22px;">${payload.result.percentReady}%</strong>
+          </td></tr>
+
+          <!-- Domain breakdown -->
+          <tr><td style="padding:18px 36px 4px;">
+            <div style="font-family:${FONT_DISPLAY};font-size:13px;color:${ORANGE_DEEP};letter-spacing:0.1em;text-transform:uppercase;font-weight:700;margin-bottom:6px;">
+              Domain breakdown
+            </div>
+          </td></tr>
+          <tr><td style="padding:2px 36px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
+            <strong style="color:${INK};display:inline-block;min-width:96px;">Digital:</strong> ${dScore("Digital")}/6
+          </td></tr>
+          <tr><td style="padding:2px 36px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
+            <strong style="color:${INK};display:inline-block;min-width:96px;">Legal:</strong> ${dScore("Legal")}/6
+          </td></tr>
+          <tr><td style="padding:2px 36px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
+            <strong style="color:${INK};display:inline-block;min-width:96px;">Financial:</strong> ${dScore("Financial")}/6
+          </td></tr>
+          <tr><td style="padding:2px 36px 14px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
+            <strong style="color:${INK};display:inline-block;min-width:96px;">Physical:</strong> ${dScore("Physical")}/6
+          </td></tr>
+
+          <!-- The deal -->
+          <tr><td style="padding:14px 36px 4px;font-family:${FONT_BODY};font-size:15px;line-height:1.6;color:${SOFT};border-top:1px solid ${DIVIDER};">
+            Here is the deal for the next 7 days. One action a day. Each one takes 10 to 15 minutes. Built for your specific gaps, in the right order. By Day 7 you will have done more legacy work than the majority of people. Let&rsquo;s break through this taboo topic together.
+          </td></tr>
+
+          <tr><td style="padding:10px 36px 4px;font-family:${FONT_BODY};font-size:15px;line-height:1.6;color:${SOFT};">
+            This is not a content series. This is a project management plan. As your <strong style="color:${INK};">ENDevo Project Manager</strong>, I will walk you through the daily action items starting Day 2.
+          </td></tr>
+
+          <!-- 7-day plan -->
+          <tr><td style="padding:18px 36px 4px;">
+            <div style="font-family:${FONT_DISPLAY};font-size:13px;color:${ORANGE_DEEP};letter-spacing:0.1em;text-transform:uppercase;font-weight:700;margin-bottom:6px;">
+              Your 7-day plan
+            </div>
+          </td></tr>
+          <tr><td style="padding:2px 36px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
+            <strong style="color:${INK};">Day 1:</strong> ${escapeHtml(plan[0].action.title)}
+          </td></tr>
+          <tr><td style="padding:2px 36px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
+            <strong style="color:${INK};">Day 2:</strong> ${escapeHtml(plan[1].action.title)}
+          </td></tr>
+          <tr><td style="padding:2px 36px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
+            <strong style="color:${INK};">Day 3:</strong> ${escapeHtml(plan[2].action.title)}
+          </td></tr>
+          <tr><td style="padding:2px 36px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
+            <strong style="color:${INK};">Day 4:</strong> ${escapeHtml(plan[3].action.title)}
+          </td></tr>
+          <tr><td style="padding:2px 36px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
+            <strong style="color:${INK};">Day 5:</strong> ${escapeHtml(plan[4].action.title)}
+          </td></tr>
+          <tr><td style="padding:2px 36px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
+            <strong style="color:${INK};">Day 6:</strong> ${escapeHtml(plan[5].action.title)}
+          </td></tr>
+          <tr><td style="padding:2px 36px 14px;font-family:${FONT_BODY};font-size:15px;line-height:1.55;color:${SOFT};">
+            <strong style="color:${INK};">Day 7:</strong> Consolidation + your next step
+          </td></tr>
+
+          <!-- Closing -->
           <tr><td style="padding:18px 36px 4px;font-family:${FONT_BODY};font-size:15px;line-height:1.6;color:${SOFT};">
-            Your full domain-by-domain breakdown and your personalised 7-day plan are in the PDF planner attached to this email.
-          </td></tr>
-
-          <tr><td style="padding:10px 36px 4px;font-family:${FONT_BODY};font-size:15px;line-height:1.6;color:${SOFT};">
-            Your weakest domain is <strong style="color:${INK};">${escapeHtml(weakest)}</strong>. That is where we start on Day 1.
-          </td></tr>
-
-          <!-- What this week is about -->
-          <tr><td style="padding:16px 36px 4px;font-family:${FONT_BODY};font-size:15px;line-height:1.6;color:${SOFT};">
-            Before I hand you Day 1, I want to tell you what this week is actually about. It is not a checklist. It is a practice. Over the next seven days you will build, in small pieces, the single most generous gift you can give the people you love: a clear path forward for when you are gone.
-          </td></tr>
-
-          <tr><td style="padding:10px 36px 4px;font-family:${FONT_BODY};font-size:15px;line-height:1.6;color:${SOFT};">
-            Not a Will. Not a set of documents. A path. A way for them to not be lost in a kitchen at 2 a.m. looking for a password. A way for them to honor you without fighting about what you would have wanted. A way for them to breathe in the worst moment of their lives because you made sure they could.
-          </td></tr>
-
-          <tr><td style="padding:10px 36px 18px;font-family:${FONT_BODY};font-size:15px;line-height:1.6;color:${SOFT};">
-            <strong style="color:${INK};">That is the work. That is why this matters.</strong>
-          </td></tr>
-
-          <tr><td style="padding:6px 36px 4px;font-family:${FONT_BODY};font-size:15px;line-height:1.6;color:${SOFT};">
-            Open the attached planner. Day 1 starts tomorrow morning. See you then.
+            Day 1 lands in your inbox tomorrow morning. Get ready to make progress and protect your legacy. I&rsquo;ll be with you every step of the way.
           </td></tr>
 
           <!-- CTA button -->
@@ -157,14 +186,14 @@ function renderHtml(payload: ReportPayload): string {
               <tr><td align="center" style="background:${ORANGE};border-radius:100px;box-shadow:0 6px 20px rgba(249,115,22,0.35);">
                 <a href="${BOOK_NIKI_URL}"
                    style="display:inline-block;padding:14px 28px;font-family:${FONT_DISPLAY};font-weight:700;font-size:14px;color:#ffffff;text-decoration:none;letter-spacing:0.02em;">
-                  Book a call and review with Niki &rarr;
+                  Book a 1:1 with your Project Manager &rarr;
                 </a>
               </td></tr>
             </table>
           </td></tr>
 
-          <tr><td style="padding:6px 36px 18px;font-family:${FONT_BODY};font-size:14px;line-height:1.55;color:${MUTED};text-align:center;">
-            Your full 7-day planner is attached to this email as a PDF.
+          <tr><td style="padding:6px 36px 18px;font-family:${FONT_BODY};font-size:13px;line-height:1.55;color:${MUTED};text-align:center;">
+            Questions about the plan? Just reply &mdash; I read every email.
           </td></tr>
 
           <!-- Signature -->
@@ -258,30 +287,44 @@ function renderHtml(payload: ReportPayload): string {
 }
 
 function renderText(payload: ReportPayload): string {
-  const band = BAND_DEFS[payload.result.band];
   const fName = firstName(payload.name);
-  const weakest = payload.result.weakestDomain;
+  const plan = payload.result.plan;
+  const dScore = (d: string) =>
+    payload.result.domainResults.find((x) => x.domain === d)?.score ?? 0;
 
   return [
     `Hi ${fName},`,
     ``,
-    `You just did something most people will not do this year. You took a few minutes and looked honestly at your legacy readiness across the four domains that matter: legal, financial, physical, and digital.`,
+    `You just did something most people refuse to do. You looked at your own death honestly. Twelve questions. Four domains. Five minutes.`,
     ``,
-    `${payload.result.percentReady}%  —  AVERAGE READINESS ACROSS YOUR 4 DOMAINS  —  ${band.label}`,
+    `Here is what came back.`,
     ``,
-    `Your full domain-by-domain breakdown and your personalised 7-day plan are in the PDF planner attached to this email.`,
+    `Your Legacy Readiness Score: ${payload.result.percentReady}%`,
     ``,
-    `Your weakest domain is ${weakest}. That is where we start on Day 1.`,
+    `Domain breakdown:`,
+    `Digital: ${dScore("Digital")}/6`,
+    `Legal: ${dScore("Legal")}/6`,
+    `Financial: ${dScore("Financial")}/6`,
+    `Physical: ${dScore("Physical")}/6`,
     ``,
-    `Before I hand you Day 1, I want to tell you what this week is actually about. It is not a checklist. It is a practice. Over the next seven days you will build, in small pieces, the single most generous gift you can give the people you love: a clear path forward for when you are gone.`,
+    `Here is the deal for the next 7 days. One action a day. Each one takes 10 to 15 minutes. Built for your specific gaps, in the right order. By Day 7 you will have done more legacy work than the majority of people. Let's break through this taboo topic together.`,
     ``,
-    `Not a Will. Not a set of documents. A path. A way for them to not be lost in a kitchen at 2 a.m. looking for a password. A way for them to honor you without fighting about what you would have wanted. A way for them to breathe in the worst moment of their lives because you made sure they could.`,
+    `This is not a content series. This is a project management plan. As your ENDevo Project Manager, I will walk you through the daily action items starting Day 2.`,
     ``,
-    `That is the work. That is why this matters.`,
+    `Your 7-day plan:`,
+    `Day 1: ${plan[0].action.title}`,
+    `Day 2: ${plan[1].action.title}`,
+    `Day 3: ${plan[2].action.title}`,
+    `Day 4: ${plan[3].action.title}`,
+    `Day 5: ${plan[4].action.title}`,
+    `Day 6: ${plan[5].action.title}`,
+    `Day 7: Consolidation + your next step`,
     ``,
-    `Open the attached planner. Day 1 starts tomorrow morning. See you then.`,
+    `Day 1 lands in your inbox tomorrow morning. Get ready to make progress and protect your legacy. I'll be with you every step of the way.`,
     ``,
-    `Book a call and review with Niki: ${BOOK_NIKI_URL}`,
+    `Book a 1:1 with your Project Manager: ${BOOK_NIKI_URL}`,
+    ``,
+    `Questions about the plan? Just reply — I read every email.`,
     ``,
     `Warm regards,`,
     ``,
