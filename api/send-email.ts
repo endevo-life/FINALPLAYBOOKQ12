@@ -9,7 +9,6 @@ import {
 } from "./_lib/engine.js";
 import { renderReport } from "./_lib/emailTemplate.js";
 import { buildPlannerPdf } from "./_lib/pdf.js";
-import { getInlineImages, type InlineImage } from "./_lib/inlineAssets.js";
 
 interface SendEmailBody {
   name?: unknown;
@@ -58,14 +57,14 @@ function chunkBase64(buf: Buffer | Uint8Array): string {
 }
 
 /**
- * MIME tree:
+ * MIME tree (image-free — all images load via HTTPS URLs from the public
+ * site, so the inbox shows ONLY the PDF in the attachments list and nothing
+ * can be saved as a logo/portrait file):
+ *
  *   multipart/mixed (boundary mx)
- *     multipart/related (boundary rel)
- *       multipart/alternative (boundary alt)
- *         text/plain
- *         text/html
- *       image/png (inline, Content-ID: <...>)
- *       ...
+ *     multipart/alternative (boundary alt)
+ *       text/plain
+ *       text/html
  *     application/pdf (attachment)
  */
 function buildRawMimeEmail(opts: {
@@ -74,12 +73,10 @@ function buildRawMimeEmail(opts: {
   subject: string;
   html: string;
   text: string;
-  inlineImages: InlineImage[];
   pdf: Uint8Array;
   pdfFilename: string;
 }): Buffer {
   const mx = boundary("mixed");
-  const rel = boundary("related");
   const alt = boundary("alt");
 
   const parts: string[] = [
@@ -90,9 +87,6 @@ function buildRawMimeEmail(opts: {
     `Content-Type: multipart/mixed; boundary="${mx}"`,
     "",
     `--${mx}`,
-    `Content-Type: multipart/related; boundary="${rel}"`,
-    "",
-    `--${rel}`,
     `Content-Type: multipart/alternative; boundary="${alt}"`,
     "",
     `--${alt}`,
@@ -109,27 +103,6 @@ function buildRawMimeEmail(opts: {
     "",
     `--${alt}--`,
     "",
-  ];
-
-  for (const img of opts.inlineImages) {
-    // Strip name= and filename= so clients treat these strictly as inline
-    // embedded resources (referenced by Content-ID) rather than downloadable
-    // attachments shown at the bottom of the message.
-    parts.push(
-      `--${rel}`,
-      `Content-Type: ${img.contentType}`,
-      "Content-Transfer-Encoding: base64",
-      `Content-ID: <${img.cid}>`,
-      "Content-Disposition: inline",
-      "",
-      chunkBase64(img.buffer),
-      ""
-    );
-  }
-
-  parts.push(
-    `--${rel}--`,
-    "",
     `--${mx}`,
     "Content-Type: application/pdf",
     "Content-Transfer-Encoding: base64",
@@ -138,8 +111,8 @@ function buildRawMimeEmail(opts: {
     chunkBase64(opts.pdf),
     "",
     `--${mx}--`,
-    ""
-  );
+    "",
+  ];
 
   return Buffer.from(parts.join("\r\n"), "utf-8");
 }
@@ -186,15 +159,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return;
   }
 
-  let inlineImages: InlineImage[];
-  try {
-    inlineImages = getInlineImages();
-  } catch (err) {
-    console.error("Inline image load failed:", err);
-    res.status(500).json({ error: "Email assets missing on server." });
-    return;
-  }
-
   const ses = new SESClient({ region: process.env.AWS_REGION ?? "us-east-1" });
   const firstNameSlug =
     name.split(/\s+/)[0].replace(/[^a-z0-9]/gi, "").toLowerCase() || "plan";
@@ -207,7 +171,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     subject: rendered.subject,
     html: rendered.html,
     text: rendered.text,
-    inlineImages,
     pdf,
     pdfFilename: `${firstNameSlug}-7DayLegacyPlanner-${mmddyyyy}.pdf`,
   });

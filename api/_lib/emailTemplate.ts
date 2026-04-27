@@ -16,12 +16,29 @@ export interface RenderedEmail {
 const PREVIEW_TEXT =
   "Day 1 starts tomorrow. Here is what this week is really about.";
 
-export const LOGO_CID = "endevo-logo";
-export const FP_ICON_CID = "endevo-finalplaybook";
-export const ENDEVO_ICON_CID = "endevo-favicon";
-export const DLP_ICON_CID = "endevo-dlp-podcast";
-export const NIKI_PORTRAIT_CID = "niki-portrait";
-export const NIKI_DETAILS_CID = "niki-details";
+// Public asset filenames served from /public/ on the deployed Vercel site.
+const LOGO_FILE = "logo_v2_with_white_text.png";
+const FP_ICON_FILE = "jesse.png";
+const ENDEVO_ICON_FILE = "favicon.png";
+const DLP_ICON_FILE = "digital-legacy-podcast_square.png";
+const NIKI_PORTRAIT_FILE = "niki-weiss-signature-with-picture.png";
+const NIKI_DETAILS_FILE = "niki-weiss-signature-details.png";
+
+/**
+ * Resolve the public HTTPS URL for an asset shipped in /public/. Order:
+ *  1. PUBLIC_ASSET_BASE_URL env var (manual override)
+ *  2. VERCEL_PROJECT_PRODUCTION_URL (auto-set on Vercel — always the prod domain
+ *     even from preview deploys, so emails point at the live assets)
+ *  3. Hardcoded fallback to the known prod URL
+ */
+function publicAssetUrl(filename: string): string {
+  const explicit = process.env.PUBLIC_ASSET_BASE_URL;
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const base =
+    explicit ??
+    (vercel ? `https://${vercel}` : "https://finalplaybookq12.vercel.app");
+  return `${base.replace(/\/$/, "")}/${filename.replace(/^\//, "")}`;
+}
 
 export const BOOK_NIKI_URL =
   "https://link.endevo.life/widget/bookings/time-with-niki";
@@ -82,11 +99,11 @@ function renderHtml(payload: ReportPayload): string {
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
               <tr>
                 <td width="120" align="left" valign="middle" style="width:120px;">
-                  <img src="cid:${FP_ICON_CID}" width="104" height="104" alt="ENDevo"
+                  <img src="${publicAssetUrl(FP_ICON_FILE)}" width="104" height="104" alt="ENDevo"
                        style="display:block;width:104px;height:104px;border-radius:50%;border:2px solid rgba(255,255,255,0.30);" />
                 </td>
                 <td align="center" valign="middle">
-                  <img src="cid:${LOGO_CID}" width="220" alt="ENDevo"
+                  <img src="${publicAssetUrl(LOGO_FILE)}" width="220" alt="ENDevo"
                        style="display:block;margin:0 auto 4px;height:auto;" />
                   <div style="font-family:${FONT_DISPLAY};font-size:11px;letter-spacing:0.16em;color:rgba(255,255,255,0.85);text-transform:uppercase;font-weight:600;">
                     Digital Legacy Planning Made Easy
@@ -208,12 +225,12 @@ function renderHtml(payload: ReportPayload): string {
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
               <tr>
                 <td width="200" valign="top" align="center" style="width:200px;padding:0 16px 0 0;">
-                  <img src="cid:${NIKI_PORTRAIT_CID}" alt="Niki D. Weiss"
+                  <img src="${publicAssetUrl(NIKI_PORTRAIT_FILE)}" alt="Niki D. Weiss"
                        style="display:block;max-width:190px;width:100%;height:auto;margin:0 auto;" />
                 </td>
                 <td valign="top" style="padding:0;">
                   <a href="tel:+12152628581" style="text-decoration:none;display:inline-block;">
-                    <img src="cid:${NIKI_DETAILS_CID}" alt="Niki D. Weiss - Founder, Endevo Inc. | Creator, My Final Playbook App | Host, Digital Legacy Podcast | 215-262-8581"
+                    <img src="${publicAssetUrl(NIKI_DETAILS_FILE)}" alt="Niki D. Weiss - Founder, Endevo Inc. | Creator, My Final Playbook App | Host, Digital Legacy Podcast | 215-262-8581"
                          style="display:block;max-width:340px;width:100%;height:auto;margin:0 0 12px;" />
                   </a>
 
@@ -221,19 +238,19 @@ function renderHtml(payload: ReportPayload): string {
                     <tr>
                       <td style="padding:0 3px 0 0;">
                         <a href="https://endevo.life" style="text-decoration:none;" title="Endevo">
-                          <img src="cid:${ENDEVO_ICON_CID}" width="28" height="28" alt="Endevo"
+                          <img src="${publicAssetUrl(ENDEVO_ICON_FILE)}" width="28" height="28" alt="Endevo"
                                style="display:block;width:28px;height:28px;border:0;border-radius:6px;" />
                         </a>
                       </td>
                       <td style="padding:0 3px;">
                         <a href="https://digitallegacypodcast.com" style="text-decoration:none;" title="Digital Legacy Podcast">
-                          <img src="cid:${DLP_ICON_CID}" width="28" height="28" alt="Digital Legacy Podcast"
+                          <img src="${publicAssetUrl(DLP_ICON_FILE)}" width="28" height="28" alt="Digital Legacy Podcast"
                                style="display:block;width:28px;height:28px;border:0;border-radius:6px;" />
                         </a>
                       </td>
                       <td style="padding:0 3px;">
                         <a href="https://finalplaybook.com" style="text-decoration:none;" title="Finalplaybook">
-                          <img src="cid:${FP_ICON_CID}" width="28" height="28" alt="Finalplaybook"
+                          <img src="${publicAssetUrl(FP_ICON_FILE)}" width="28" height="28" alt="Finalplaybook"
                                style="display:block;width:28px;height:28px;border:0;border-radius:6px;" />
                         </a>
                       </td>
@@ -275,7 +292,7 @@ function renderHtml(payload: ReportPayload): string {
 
           <!-- Footer -->
           <tr><td style="background:${NAVY_GRAD};padding:14px 36px 14px;text-align:center;">
-            <img src="cid:${LOGO_CID}"
+            <img src="${publicAssetUrl(LOGO_FILE)}"
                  width="110" alt="ENDevo" style="display:block;margin:0 auto 6px;height:auto;" />
             <div style="font-family:${FONT_BODY};font-size:11px;color:rgba(255,255,255,0.7);line-height:1.5;">
               <a href="${BRAND.privacyUrl}" style="color:rgba(255,255,255,0.8);text-decoration:underline;">Privacy Policy</a>
