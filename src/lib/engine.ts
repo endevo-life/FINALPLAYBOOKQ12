@@ -374,6 +374,22 @@ export function runAssessment(name: string, answers: Answer[]): AssessmentResult
 // GHL WEBHOOK PAYLOAD
 // ============================================================
 
+/**
+ * Pre-format a day's action into a single multi-line string for the GHL
+ * drip-email merge tag {{contact.q12_day_N_action}}.
+ */
+function formatDayAction(d: DayAssignment): string {
+  return [
+    `${d.action.title} (${d.action.time})`,
+    ``,
+    `Why this matters:`,
+    d.action.socialProof,
+    ``,
+    `How to do it:`,
+    d.action.howTo,
+  ].join("\n");
+}
+
 export function toGHLPayload(
   result: AssessmentResult,
   email: string,
@@ -419,7 +435,17 @@ export function toGHLPayload(
     strongest_domain: byRank(4),
     domain_ranks: [byRank(1), byRank(2), byRank(3), byRank(4)],
 
-    // ── Personalised 7-day plan (full action detail per day for drip emails)
+    // ── Personalised 7-day plan
+    // day_N_action: ONE pre-formatted block per day (title + time + why + how).
+    // Niki's drip emails merge {{contact.q12_day_N_action}} -- 7 GHL fields total.
+    day_1_action: formatDayAction(result.plan[0]),
+    day_2_action: formatDayAction(result.plan[1]),
+    day_3_action: formatDayAction(result.plan[2]),
+    day_4_action: formatDayAction(result.plan[3]),
+    day_5_action: formatDayAction(result.plan[4]),
+    day_6_action: formatDayAction(result.plan[5]),
+    day_7_action: formatDayAction(result.plan[6]),
+    // Granular per-day fields kept for forward compat / power workflows.
     day_1_action_id: result.plan[0].action.id,
     day_1_action_title: result.plan[0].action.title,
     day_1_time: result.plan[0].action.time,
